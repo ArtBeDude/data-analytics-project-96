@@ -12,11 +12,10 @@ WITH cte1 AS (
         le.status_id
     FROM leads AS le
     LEFT JOIN sessions AS ses
-        ON le.visitor_id = ses.visitor_id
-    WHERE
-        ses.source <> 'organic'
-        AND ses.medium <> 'organic'
-        AND le.amount > 0
+        ON
+            le.visitor_id = ses.visitor_id
+            AND le.created_at >= ses.visit_date
+    WHERE ses.medium <> 'organic'
     ORDER BY le.visitor_id ASC, ses.visit_date DESC
 )
 
@@ -28,4 +27,3 @@ ORDER BY
     utm_source ASC,
     utm_medium ASC,
     utm_campaign ASC
-LIMIT 10;
