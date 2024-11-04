@@ -1,5 +1,5 @@
 WITH cte1 AS (
-    SELECT DISTINCT ON (le.visitor_id)
+    SELECT
         le.visitor_id,
         ses.visit_date,
         ses.source AS utm_source,
@@ -9,21 +9,35 @@ WITH cte1 AS (
         le.created_at,
         le.amount,
         le.closing_reason,
-        le.status_id
-    FROM leads AS le
-    LEFT JOIN sessions AS ses
+        le.status_id,
+        ROW_NUMBER()
+            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
+        AS rn
+    FROM sessions AS ses
+    LEFT JOIN leads AS le
         ON
-            le.visitor_id = ses.visitor_id
-            AND le.created_at >= ses.visit_date
+            ses.visitor_id = le.visitor_id
+            AND ses.visit_date <= le.created_at
     WHERE ses.medium <> 'organic'
-    ORDER BY le.visitor_id ASC, ses.visit_date DESC
 )
 
-SELECT *
+SELECT
+    visitor_id,
+    visit_date,
+    utm_source,
+    utm_medium,
+    utm_campaign,
+    lead_id,
+    created_at,
+    amount,
+    closing_reason,
+    status_id
 FROM cte1
+WHERE rn = 1
 ORDER BY
-    amount DESC,
+    amount DESC NULLS LAST,
     visit_date ASC,
     utm_source ASC,
     utm_medium ASC,
     utm_campaign ASC
+LIMIT 10;
