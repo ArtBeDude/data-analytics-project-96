@@ -43,7 +43,7 @@ cte2 AS (
 ),
 ya_vk_spent AS (
     SELECT
-        DATE_TRUNC('day', campaign_date) AS date_ad,
+        to_char(campaign_date,'YYYY-MM-DD') AS date_ad,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -52,7 +52,7 @@ ya_vk_spent AS (
     GROUP BY 1, 2, 3, 4
     UNION ALL
     SELECT
-        DATE_TRUNC('day', campaign_date) AS date_ad,
+        to_char(campaign_date,'YYYY-MM-DD') AS date_ad,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -62,19 +62,19 @@ ya_vk_spent AS (
     ORDER BY 1
 )
 SELECT
-    DATE_TRUNC('day', cte2.visit_date) AS visit_date,
-    COUNT(*) AS visitor_count,
+    TO_CHAR(cte2.visit_date,'YYYY-MM-DD') AS visit_date,
+    COUNT(*) AS visitors_count,
     cte2.utm_source,
     cte2.utm_medium,
     cte2.utm_campaign,
     yv.total_cost,
     COUNT(*) FILTER (WHERE lead_id IS NOT NULL) AS leads_count,
-    COUNT(*) FILTER (WHERE status_id = 142) AS purchase_count,
+    COUNT(*) FILTER (WHERE status_id = 142) AS purchases_count,
     SUM(amount) AS revenue
 FROM cte2
 LEFT JOIN ya_vk_spent AS yv
     ON
-        DATE_TRUNC('day', cte2.visit_date) = yv.date_ad
+        TO_CHAR(cte2.visit_date,'YYYY-MM-DD') = yv.date_ad
         AND cte2.utm_source = yv.utm_source
         AND cte2.utm_medium = yv.utm_medium
         AND cte2.utm_campaign = yv.utm_campaign
@@ -82,7 +82,7 @@ GROUP BY 1, 3, 4, 5, 6
 ORDER BY
     revenue DESC NULLS LAST,
     visit_date ASC,
-    visitor_count DESC,
+    visitors_count DESC,
     utm_source ASC,
     utm_medium ASC,
     utm_campaign ASC
