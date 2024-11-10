@@ -1,24 +1,24 @@
 WITH cte1 AS (
     SELECT
-        le.visitor_id,
-        ses.visit_date,
-        ses.source AS utm_source,
-        ses.medium AS utm_medium,
-        ses.campaign AS utm_campaign,
-        le.lead_id,
-        le.created_at,
-        le.amount,
-        le.closing_reason,
-        le.status_id,
-        ROW_NUMBER()
-            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
-        AS rn
-    FROM sessions AS ses
-    LEFT JOIN leads AS le
-        ON
-            ses.visitor_id = le.visitor_id
-            AND ses.visit_date <= le.created_at
-    WHERE ses.medium <> 'organic'
+    le.visitor_id,
+    ses.visit_date,
+    ses.source AS utm_source,
+    ses.medium AS utm_medium,
+    ses.campaign AS utm_campaign,
+    le.lead_id,
+    le.created_at,
+    le.amount,
+    le.closing_reason,
+    le.status_id,
+    ROW_NUMBER()
+        OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
+    AS rn
+FROM sessions AS ses
+LEFT JOIN leads AS le
+    ON
+        ses.visitor_id = le.visitor_id
+        AND ses.visit_date <= le.created_at
+WHERE ses.medium <> 'organic'
 ),
 
 cte2 AS (
