@@ -20,6 +20,7 @@ WITH cte1 AS (
             AND ses.visit_date <= le.created_at
     WHERE ses.medium <> 'organic'
 ),
+
 cte2 AS (
     SELECT
         visitor_id,
@@ -41,51 +42,64 @@ cte2 AS (
         utm_medium ASC,
         utm_campaign ASC
 ),
+
 ya_vk_spent AS (
     SELECT
-        to_char(campaign_date,'YYYY-MM-DD') AS date_ad,
         utm_source,
         utm_medium,
         utm_campaign,
+        TO_CHAR(campaign_date, 'YYYY-MM-DD') AS date_ad,
         SUM(daily_spent) AS total_cost
     FROM ya_ads
-    GROUP BY 1, 2, 3, 4
-    UNION ALL
-    SELECT
-        to_char(campaign_date,'YYYY-MM-DD') AS date_ad,
+    GROUP BY
         utm_source,
         utm_medium,
         utm_campaign,
+        TO_CHAR(campaign_date, 'YYYY-MM-DD')
+    UNION ALL
+    SELECT
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        TO_CHAR(campaign_date, 'YYYY-MM-DD') AS date_ad,
         SUM(daily_spent) AS total_cost
     FROM vk_ads
-    GROUP BY 1, 2, 3, 4
-    ORDER BY 1
+    GROUP BY
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        TO_CHAR(campaign_date, 'YYYY-MM-DD')
+    ORDER BY date_ad
 )
+
 SELECT
-    TO_CHAR(cte2.visit_date,'YYYY-MM-DD') AS visit_date,
-    COUNT(*) AS visitors_count,
     cte2.utm_source,
     cte2.utm_medium,
     cte2.utm_campaign,
     yv.total_cost,
-    COUNT(*) FILTER (WHERE lead_id IS NOT NULL) AS leads_count,
-    COUNT(*) FILTER (WHERE status_id = 142) AS purchases_count,
-    SUM(amount) AS revenue
+    TO_CHAR(cte2.visit_date, 'YYYY-MM-DD') AS visit_date,
+    COUNT(*) AS visitors_count,
+    COUNT(*) FILTER (WHERE cte2.lead_id IS NOT NULL) AS leads_count,
+    COUNT(*) FILTER (WHERE cte2.status_id = 142) AS purchases_count,
+    SUM(cte2.amount) AS revenue
 FROM cte2
 LEFT JOIN ya_vk_spent AS yv
     ON
-        TO_CHAR(cte2.visit_date,'YYYY-MM-DD') = yv.date_ad
+        TO_CHAR(cte2.visit_date, 'YYYY-MM-DD') = yv.date_ad
         AND cte2.utm_source = yv.utm_source
         AND cte2.utm_medium = yv.utm_medium
         AND cte2.utm_campaign = yv.utm_campaign
-GROUP BY 1, 3, 4, 5, 6
+GROUP BY
+    cte2.utm_source,
+    cte2.utm_medium,
+    cte2.utm_campaign,
+    yv.total_cost,
+    TO_CHAR(cte2.visit_date, 'YYYY-MM-DD')
 ORDER BY
     revenue DESC NULLS LAST,
     visit_date ASC,
     visitors_count DESC,
-    utm_source ASC,
-    utm_medium ASC,
-    utm_campaign ASC
+    cte2.utm_source ASC,
+    cte2.utm_medium ASC,
+    cte2.utm_campaign ASC
 LIMIT 15;
-
-
