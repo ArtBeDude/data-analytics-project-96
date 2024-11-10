@@ -12,7 +12,7 @@ WITH tab AS (
         source,
         date_trunc('day', visit_date) AS visit_date,
         count(source)
-            OVER (PARTITION BY date_trunc('day', visit_date), source)
+        OVER (PARTITION BY date_trunc('day', visit_date), source)
         AS cnt_source
     FROM sessions
     WHERE medium != 'organic'
@@ -44,11 +44,10 @@ SELECT
     ya.utm_source,
     ya.campaign_date,
     sum(sum(ya.daily_spent))
-        OVER (
-            PARTITION BY ya.utm_source
-            ORDER BY ya.campaign_date ROWS UNBOUNDED PRECEDING
-        )
-    AS total_spent
+    OVER (
+        PARTITION BY ya.utm_source
+        ORDER BY ya.campaign_date ROWS UNBOUNDED PRECEDING
+    ) AS total_spent
 FROM ya_ads AS ya
 GROUP BY 1, 2
 UNION ALL
@@ -56,11 +55,10 @@ SELECT
     va.utm_source,
     va.campaign_date,
     sum(sum(va.daily_spent))
-        OVER (
-            PARTITION BY va.utm_source
-            ORDER BY va.campaign_date ROWS UNBOUNDED PRECEDING
-        )
-    AS total_spent
+    OVER (
+        PARTITION BY va.utm_source
+        ORDER BY va.campaign_date ROWS UNBOUNDED PRECEDING
+    ) AS total_spent
 FROM vk_ads AS va
 GROUP BY 1, 2; -- подсчет стоимости рекламы по каналам ya и vk в динамике
 
