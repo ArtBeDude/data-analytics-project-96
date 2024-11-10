@@ -18,7 +18,7 @@ WITH cte1 AS (
         ON
             ses.visitor_id = le.visitor_id
             AND ses.visit_date <= le.created_at
-    WHERE ses.medium <> 'organic'
+    WHERE ses.medium != 'organic'
 )
 
 SELECT
