@@ -11,14 +11,14 @@ WITH cte1 AS (
         le.closing_reason,
         le.status_id,
         ROW_NUMBER()
-            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
+        OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
         AS rn
     FROM sessions AS ses
     LEFT JOIN leads AS le
         ON
             ses.visitor_id = le.visitor_id
             AND ses.visit_date <= le.created_at
-    WHERE ses.medium <> 'organic'
+    WHERE ses.medium != 'organic'
 ),
 
 cte2 AS (
