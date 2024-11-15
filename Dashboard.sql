@@ -104,17 +104,17 @@ WITH cte1 AS (
         le.amount,
         le.closing_reason,
         le.status_id,
-        Extract(DAY FROM le.created_at) - Extract(DAY FROM ses.visit_date)
+        extract(DAY FROM le.created_at) - extract(DAY FROM ses.visit_date)
         AS diff_day,
-        Row_number()
-            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
-        AS rn
+        row_number() OVER (
+            PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC
+        ) AS rn
     FROM sessions AS ses
     LEFT JOIN leads AS le
         ON
             ses.visitor_id = le.visitor_id
             AND ses.visit_date <= le.created_at
-    WHERE ses.medium <> 'organic'
+    WHERE ses.medium != 'organic'
 ),
 
 cte2 AS (
@@ -124,7 +124,7 @@ cte2 AS (
         lead_id,
         created_at,
         diff_day,
-        Cume_dist() OVER (ORDER BY diff_day ASC) AS cume_res
+        cume_dist() OVER (ORDER BY diff_day ASC) AS cume_res
     FROM cte1
     WHERE
         rn = 1
@@ -133,7 +133,7 @@ cte2 AS (
         diff_day DESC
 )
 
-SELECT First_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
+SELECT first_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
 FROM cte2
 WHERE cume_res >= 0.9
 LIMIT 1;
