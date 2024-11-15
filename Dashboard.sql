@@ -129,8 +129,7 @@ cte2 AS (
     WHERE
         rn = 1
         AND status_id = 142
-    ORDER BY
-        diff_day DESC
+    ORDER BY diff_day DESC
 )
 
 SELECT first_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
