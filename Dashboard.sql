@@ -92,7 +92,7 @@ LEFT JOIN cte2
 GROUP BY 1, 2;
 -- для расчета процента конверсии
 
-WITH cte1 AS (
+WITH cte1 AS ( -- расчет закрытия лидов 90%
     SELECT
         le.visitor_id,
         ses.visit_date,
@@ -129,7 +129,6 @@ cte2 AS (
     WHERE
         rn = 1
         AND status_id = 142
-    ORDER BY diff_day DESC
 )
 
 SELECT first_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
