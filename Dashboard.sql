@@ -91,3 +91,49 @@ LEFT JOIN cte2
 -- датасет с подсчетом уникальных пользователей, лидов и покупателей
 GROUP BY 1, 2;
 -- для расчета процента конверсии
+
+WITH cte1 AS (
+    SELECT
+        le.visitor_id,
+        ses.visit_date,
+        ses.source AS utm_source,
+        ses.medium AS utm_medium,
+        ses.campaign AS utm_campaign,
+        le.lead_id,
+        le.created_at,
+        le.amount,
+        le.closing_reason,
+        le.status_id,
+        Extract(DAY FROM le.created_at) - Extract(DAY FROM ses.visit_date)
+        AS diff_day,
+        Row_number()
+            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
+        AS rn
+    FROM sessions AS ses
+    LEFT JOIN leads AS le
+        ON
+            ses.visitor_id = le.visitor_id
+            AND ses.visit_date <= le.created_at
+    WHERE ses.medium <> 'organic'
+),
+
+cte2 AS (
+    SELECT
+        visitor_id,
+        visit_date,
+        lead_id,
+        created_at,
+        diff_day,
+        Cume_dist() OVER (ORDER BY diff_day ASC) AS cume_res
+    FROM cte1
+    WHERE
+        rn = 1
+        AND status_id = 142
+    ORDER BY
+        diff_day DESC
+)
+
+SELECT First_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
+FROM cte2
+WHERE cume_res >= 0.9
+LIMIT 1;
