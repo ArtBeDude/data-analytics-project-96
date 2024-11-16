@@ -10,9 +10,9 @@ WITH cte1 AS (
         le.amount,
         le.closing_reason,
         le.status_id,
-        ROW_NUMBER()
-        OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
-        AS rn
+        ROW_NUMBER() OVER (
+            PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC
+        ) AS rn
     FROM sessions AS ses
     LEFT JOIN leads AS le
         ON
