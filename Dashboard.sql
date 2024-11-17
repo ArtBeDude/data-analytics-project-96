@@ -12,7 +12,7 @@ WITH tab AS (
         source,
         date_trunc('day', visit_date) AS visit_date,
         count(source)
-            OVER (PARTITION BY date_trunc('day', visit_date), source)
+        OVER (PARTITION BY date_trunc('day', visit_date), source)
         AS cnt_source
     FROM sessions
     WHERE medium != 'organic'
@@ -42,27 +42,15 @@ INNER JOIN cte1 AS cte1
 
 SELECT
     ya.utm_source,
-    ya.campaign_date,
-    sum(sum(ya.daily_spent))
-        OVER (
-            PARTITION BY ya.utm_source
-            ORDER BY ya.campaign_date ROWS UNBOUNDED PRECEDING
-        )
-    AS total_spent
+    sum(ya.daily_spent)
 FROM ya_ads AS ya
-GROUP BY 1, 2
+GROUP BY 1
 UNION ALL
 SELECT
     va.utm_source,
-    va.campaign_date,
-    sum(sum(va.daily_spent))
-        OVER (
-            PARTITION BY va.utm_source
-            ORDER BY va.campaign_date ROWS UNBOUNDED PRECEDING
-        )
-    AS total_spent
+    sum(va.daily_spent) AS total_spent
 FROM vk_ads AS va
-GROUP BY 1, 2; -- подсчет стоимости рекламы по каналам ya и vk в динамике
+GROUP BY 1 -- подсчет стоимости рекламы по каналам ya и vk
 
 WITH cte1 AS (
     SELECT DISTINCT visitor_id
@@ -109,8 +97,7 @@ WITH cte1 AS (
         extract(DAY FROM le.created_at) - extract(DAY FROM ses.visit_date)
         AS diff_day,
         row_number()
-            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
-        AS rn
+        OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC) AS rn
     FROM sessions AS ses
     LEFT JOIN leads AS le
         ON
@@ -136,4 +123,4 @@ cte2 AS (
 SELECT first_value(diff_day) OVER (ORDER BY diff_day ASC) AS lead_close
 FROM cte2
 WHERE cume_res >= 0.9
-LIMIT 1;
+LIMIT 1; -- время закрытия лидов
