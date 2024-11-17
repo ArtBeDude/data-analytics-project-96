@@ -42,7 +42,7 @@ INNER JOIN cte1 AS cte1
 
 SELECT
     ya.utm_source,
-    sum(ya.daily_spent)
+    sum(ya.daily_spent) AS total_spent
 FROM ya_ads AS ya
 GROUP BY 1
 UNION ALL
@@ -50,7 +50,7 @@ SELECT
     va.utm_source,
     sum(va.daily_spent) AS total_spent
 FROM vk_ads AS va
-GROUP BY 1 -- подсчет стоимости рекламы по каналам ya и vk
+GROUP BY 1; -- подсчет стоимости рекламы по каналам ya и vk
 
 WITH cte1 AS (
     SELECT DISTINCT visitor_id
