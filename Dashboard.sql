@@ -5,7 +5,7 @@ WITH lpc AS (
         le.lead_id,
         (le.created_at - ses.visit_date) AS date_diff,
         row_number()
-            OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
+        OVER (PARTITION BY ses.visitor_id ORDER BY ses.visit_date DESC)
         AS rn
     -- нумерация всех записей дней визитов
     FROM sessions AS ses
@@ -25,4 +25,3 @@ SELECT
 FROM lpc
 WHERE
     rn = 1 -- выбор первой записи посетителя по модели lpc
-
